@@ -15,89 +15,37 @@ data earns credit; *"80% seemed reasonable"* does not.
 > Missing your own targets next unit costs you nothing. Setting a target so
 > easy you can't miss it does.
 
-**Two are written for you. You write three.**
-
----
-
-## 1. A matching query completes all three tools
-
+1. A matching query completes all three tools
 Given a query that matches at least one listing, the agent completes all three
 tool calls and returns a fit card — in at least 4 of 5 tries.
 
-**Why this target:**
-<!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
-     "my search is a plain keyword match and some phrasings will miss" is a
-     real answer. -->
+Why this target:
+Because search_listings relies on exact string and numeric comparisons, natural language queries with slight phrasing differences or unusual price formats might occasionally fail to match a listing in listings.json. Allowing a 4 of 5 target accounts for non-deterministic LLM query interpretation before search execution while keeping the overall end-to-end pipeline highly reliable.
 
----
-
-## 2. An impossible query stops before the second tool
-
+2. An impossible query stops before the second tool
 Given a query that matches no listings, the agent stops before calling
-`suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
+suggest_outfit and returns a message naming what to change — 5 of 5 tries.
 
-**Why this target:**
-<!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
-     about this path? -->
+Why this target:
+Unlike LLM generation, stopping early when search returns an empty list [] is driven by deterministic Python code (if not results:). Because this is a hard coded conditional check on a local Python list rather than a probabilistic model call, it should work with 100% reliability (5 of 5 tries) to prevent wasting API tokens on empty inputs downstream.
 
----
+3. Something about state
+When search_listings selects an item, the exact dictionary object ID stored in session["selected_item"]["id"] matches the item ID received as new_item["id"] inside suggest_outfit — in 5 of 5 tries.
 
-## 3. Something about state
+Why this target:
+State management across tool steps is governed by direct Python variable assignments within agent.py rather than external LLM calls. Since this data transfer happens in deterministic code without user re-entry, any mismatch or loss of item ID between steps indicates a core logic bug that must never occur.
 
-<!-- YOU WRITE THIS ONE.
+4. Something about the fit card
+Given a completed run, the string returned by create_fit_card contains the item's title, its price formatted with a dollar sign (e.g., $25), and is under 280 characters in length — in at least 4 of 5 tries.
 
-     How would you know that the item your search found is the same item the
-     next tool received? Name something countable or observable.
+Why this target:
+The fit card is produced by an LLM call, which introduces generative variability in word choice and layout. Target metrics like including key facts (title and price) and staying under Twitter/X character limits define baseline quality while leaving room for occasional model output variation (hence 4 of 5 tries instead of 5 of 5).
 
-     This is the criterion people find hardest, because state failure doesn't
-     look like state failure — it looks like a tool problem. Something that
-     compares session["selected_item"] against what actually reached
-     suggest_outfit is the shape you're after. -->
+5. Your choice
+Given an empty wardrobe list [], calling suggest_outfit returns a non-empty dictionary containing at least two general styling suggestions without throwing an exception — 5 of 5 tries.
 
-
-
-**Why this target:**
-
-
-
----
-
-## 4. Something about the fit card
-
-<!-- YOU WRITE THIS ONE.
-
-     The fit card calls a model, so the same input can produce different words
-     each time. That's not a bug — it's the nature of the tool. So what would
-     make it acceptable?
-
-     Think about what you'd actually be unhappy to see. A caption that never
-     mentions the price? Two different items producing the same opening
-     sentence? A card longer than a caption anyone would post? Any of those can
-     be turned into a number. -->
-
-
-
-**Why this target:**
-
-
-
----
-
-## 5. Your choice
-
-<!-- YOU WRITE THIS ONE TOO.
-
-     Pick something you actually care about getting right. Speed, the empty
-     wardrobe path, what happens when the model can't be reached, whether the
-     search respects a price ceiling — anything, as long as it names a number
-     or an observable outcome. -->
-
-
-
-**Why this target:**
-
-
-
+Why this target:
+New users will often run searches before uploading or defining their wardrobe. Because our tool implementation includes an explicit fallback condition (if not wardrobe:) that generates neutral baseline pairing advice, this edge case is handled deterministically by our code and must succeed 100% of the time (5 of 5 tries).
 ---
 
 <!-- ─────────────────────────────────────────────────────────────────────────
