@@ -78,6 +78,8 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
+    
+    
     # TODO: replace this with your implementation
     return []
 

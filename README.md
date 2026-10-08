@@ -47,15 +47,28 @@
 
 ## Tool Inventory
 
-<!-- Four lines per tool. This is worth 2 points and it's the single most
-     common place students lose them.
+1. `search_listings(description: str, size: str, max_price: float)`
+   - **Description:** Filters the listing database by description keyword matching, exact size, and maximum price ceiling.
+   - **Inputs:** `description` (str), `size` (str), `max_price` (float).
+   - **Returns:** A list of matching listing dictionary objects containing `id`, `title`, `description`, `price`, `size`, and `platform`.
+   - **Empty Return:** `[]` (an empty list).
 
-     "Returns a list" earns NOTHING. The description has to say what is IN
-     the list.
+2. `suggest_outfit(new_item: dict, wardrobe: list[dict])`
+   - **Description:** Generates stylish outfit combinations and pairing ideas by passing the selected target item and the user's wardrobe items to an LLM model.
+   - **Inputs:** `new_item` (dict), `wardrobe` (list[dict]).
+   - **Returns:** A dictionary with `pairing_ideas` (list of strings) and `style_notes` (str).
+   - **Empty/Default Return:** General styling suggestions if `wardrobe` is empty (`[]`).
 
-     The empty case isn't optional either — it's the thing your loop branches
-     on, and if you don't decide it here you'll discover it as a crash in
-     Milestone 5. -->
+3. `create_fit_card(outfit: dict, new_item: dict)`
+   - **Description:** Uses the model to construct an engaging, social-media-ready caption ("fit card") incorporating item details and outfit pairing recommendations.
+   - **Inputs:** `outfit` (dict), `new_item` (dict).
+   - **Returns:** A string containing the formatted social media caption.
+   - **Empty Return:** A fallback plain caption string if generation fails.
+
+## Planning Loop
+
+- **Branching Rule:** If `search_listings` returns an empty list `[]`, record a guidance message in `session["error_message"]` detailing what search parameters to adjust (e.g., increase `max_price` or try a different `size`) and terminate execution. Otherwise, store the top matched listing in `session["selected_item"]` and proceed to `suggest_outfit`.
+- **Location:** Defined in `agent.py::run_agent`.
 
 ### `search_listings`
 
